@@ -3,11 +3,14 @@
 
 #include "stdafx.h"
 #include <algorithm>
-#include <C:\programs\cs\headers\rock paper scissors.h>
-#include <C:\programs\cs\headers\pythonlikeio.h>
+#include "rock paper scissors.h"
 #define stricmp _stricmp
 using std::cout;
 using std::cin;
+using std::ifstream;
+using std::ofstream;
+using std::string;
+using std::ios;
 
 namespace backend
 {
@@ -98,7 +101,7 @@ int main(int argc, char* argv[])
 			{
 				cout<<"Usage: "<<argv[0]<<" memorymode [username]\n";
 				cout<<"  memorymode can be any of:\n";
-				print("    none (uses a one-move algorithm)");
+				cout<<"    none (uses a one-move algorithm)\n";
 				cout<<"    session (uses session memory for the algorithm)\n";
 				cout<<"    database (uses and records user-specific data for the algorithm)\n";
 				cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n";
@@ -114,17 +117,17 @@ int main(int argc, char* argv[])
 			{
 				if (backend::load ()==failure)
 				{
-					print ("The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...");
+					cout<<"The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...\n";
 					if (backend::compatload ()==failure)
 					{
-						print ("The compatibility mode loader was not able to open your database.");
+						cout<<"The compatibility mode loader was not able to open your database.\n";
 						char yn;
 						while (1)
 						{
-							prompt (yn, true, "Would you like to wipe your corrupted database to reopen it? (y/n)");
+							cout << "Would you like to wipe the old database and reopen it (Y/N)?\n";
 							if (toupper (yn)=='Y')
 							{
-								print ("Ok...Wiping old database and starting anew...");
+								cout<<"Ok...Wiping old database and starting anew...\n";
 								backend::data::database.close();
 								backend::data::database.open ((string(backend::data::username)+".db").c_str(), ios::in|ios::out|ios::trunc);
 								break;
@@ -133,24 +136,24 @@ int main(int argc, char* argv[])
 							{
 								while (1)
 								{
-									prompt (yn, true, "Ok...Would you like to backup the old database and make a new one? (y/n)");
+									cout<<"Ok...Would you like to backup the old database and make a new one (Y/N)?\n";
 									if (toupper (yn)=='Y')
 									{
-										print ("Alright...Doing it...");
+										cout<<"Backing up...\n";
 										backend::data::database.seekp (0, ios::end);
-										streamsize filsize (backend::data::database.tellp ());
+										std::streamsize filsize (backend::data::database.tellp ());
 										char* old (new char [size_t(filsize)]);
 										backend::data::database.read (old, filsize);
 										ofstream _new ((string(backend::data::username)+".DB.BAK").c_str(), ios::out);
 										_new.write (old, filsize);
 										_new.close();
-										print ("Backup next to the program executable, as ",backend::data::username,".DB.BAK.");
+										cout<<"Done.\nBackup next to the program executable, as ",backend::data::username,".DB.BAK.\n";
 										delete[] old;
 										break;
 									}
 									if (toupper (yn)=='N')
 									{
-										print ("Ok...switching to session memory mode...");
+										cout<<"Ok...switching to session memory mode...\n";
 										delete[] backend::data::username;
 											backend::data::username=nullptr;
 										backend::data::database.close();
@@ -169,13 +172,13 @@ int main(int argc, char* argv[])
 		{
 			cout<<"Usage: "<<argv[0]<<" memorymode [username]\n";
 			cout<<"  memorymode can be any of:\n";
-			print("    none (uses a one-move algorithm)");
+			cout<<"    none (uses a one-move algorithm)\n";
 			cout<<"    session (uses session memory for the algorithm)\n";
 			cout<<"    database (uses and records user-specific data for the algorithm)\n";
 			cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n\n";
 			while (1)
 			{
-				print ("Please enter your memorymode.");
+				cout<<"Please enter your memorymode.\n";
 				string mode;
 				getline (cin, mode);
 				if (!stricmp(mode.c_str(), "database"))
@@ -193,17 +196,17 @@ int main(int argc, char* argv[])
 					{
 						if (backend::load ()==failure)
 						{
-							print ("The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...");
+							cout<<"The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...\n";
 							if (backend::compatload ()==failure)
 							{
-								print ("The compatibility mode loader was not able to open your database.");
+								cout<<"The compatibility mode loader was not able to open your database.\n";
 								char yn;
 								while (1)
 								{
-									prompt (yn, true, "Would you like to wipe your corrupted database to reopen it? (y/n)");
+									cout<<"Would you like to wipe your corrupted database to reopen it (Y/N)?\n";
 									if (toupper (yn)=='Y')
 									{
-										print ("Ok...Wiping old database and starting anew...");
+										cout<<"Ok...Wiping old database and starting anew...\n";
 										backend::data::database.close();
 										backend::data::database.open ((string(backend::data::username)+".db").c_str(), ios::in|ios::out|ios::trunc);
 										break;
@@ -212,24 +215,24 @@ int main(int argc, char* argv[])
 									{
 										while (1)
 										{
-											prompt (yn, true, "Ok...Would you like to backup the old database and make a new one? (y/n)");
+											cout<<"Ok...Would you like to backup the old database and make a new one (Y/N)?\n";
 											if (toupper (yn)=='Y')
 											{
-												print ("Alright...Doing it...");
+												cout<<"Backing up...\n";
 												backend::data::database.seekp (0, ios::end);
-												streamsize filsize (backend::data::database.tellp ());
+												std::streamsize filsize (backend::data::database.tellp ());
 												char* old (new char [size_t(filsize)]);
 												backend::data::database.read (old, filsize);
 												ofstream _new ((string(backend::data::username)+".DB.BAK").c_str(), ios::out);
 												_new.write (old, filsize);
 												_new.close();
-												print ("Backup next to the program executable, as ",backend::data::username,".DB.BAK.");
+												cout<<"Backup next to the program executable, as ",backend::data::username,".DB.BAK.\n";
 												delete[] old;
 												break;
 											}
 											if (toupper (yn)=='N')
 											{
-												print ("Ok...switching to session memory mode...");
+												cout<<"Ok...switching to session memory mode...\n";
 												delete[] backend::data::username;
 												backend::data::username=nullptr;
 												backend::data::database.close();
@@ -253,7 +256,7 @@ int main(int argc, char* argv[])
 				else if (!stricmp (mode.c_str(), "none"))
 					break; // The program starts preconfigured for this mode, so no action needs to be taken, besides breaking the while loop.
 				else
-					print ("That is not a valid mode!\nTry again...");
+					cout<<"That is not a valid mode!\nTry again...\n";
 			}
 		}
 	}
@@ -261,13 +264,13 @@ int main(int argc, char* argv[])
 	{
 		cout<<"Usage: "<<argv[0]<<" memorymode [username]\n";
 		cout<<"  memorymode can be any of:\n";
-		print("    none (uses a one-move algorithm)");
+		cout<<"    none (uses a one-move algorithm)\n";
 		cout<<"    session (uses session memory for the algorithm)\n";
 		cout<<"    database (uses and records user-specific data for the algorithm)\n";
 		cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n\n";
 		while (1)
 		{
-			print ("Please enter your memorymode.");
+			cout<<"Please enter your memorymode.\n";
 			string mode;
 			getline (cin, mode);
 			if (!stricmp(mode.c_str(), "database"))
@@ -285,17 +288,17 @@ int main(int argc, char* argv[])
 				{
 					if (backend::load ()==failure)
 					{
-						print ("The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...");
+						cout<<"The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...\n";
 						if (backend::compatload ()==failure)
 						{
-							print ("The compatibility mode loader was not able to open your database.");
+							cout<<"The compatibility mode loader was not able to open your database.\n";
 							char yn;
 							while (1)
 							{
-								prompt (yn, true, "Would you like to wipe your corrupted database to reopen it? (y/n)");
+								cout<<"Would you like to wipe your corrupted database to reopen it (Y/N)?\n";
 								if (toupper (yn)=='Y')
 								{
-									print ("Ok...Wiping old database and starting anew...");
+									cout<<"Ok...Wiping old database and starting anew...\n";
 									backend::data::database.close();
 									backend::data::database.open ((string(backend::data::username)+".db").c_str(), ios::in|ios::out|ios::trunc);
 									break;
@@ -304,24 +307,24 @@ int main(int argc, char* argv[])
 								{
 									while (1)
 									{
-										prompt (yn, true, "Ok...Would you like to backup the old database and make a new one? (y/n)");
+										cout<<"Ok...Would you like to backup the old database and make a new one (Y/N)?";
 										if (toupper (yn)=='Y')
 										{
-											print ("Alright...Doing it...");
+											cout<<"Alright...Doing it...\n";
 											backend::data::database.seekp (0, ios::end);
-											streamsize filsize (backend::data::database.tellp ());
+											std::streamsize filsize (backend::data::database.tellp ());
 											char* old (new char [size_t(filsize)]);
 											backend::data::database.read (old, filsize);
 											ofstream _new ((string(backend::data::username)+".DB.BAK").c_str(), ios::out);
 											_new.write (old, filsize);
 											_new.close();
-											print ("Backup next to the program executable, as ",backend::data::username,".DB.BAK.");
+											cout<<"Backup next to the program executable, as ",backend::data::username,".DB.BAK.\n";
 											delete[] old;
 											break;
 										}
 										if (toupper (yn)=='N')
 										{
-											print ("Ok...switching to session memory mode...");
+											cout<<"Ok...switching to session memory mode...\n";
 											delete[] backend::data::username;
 											backend::data::username=nullptr;
 											backend::data::database.close();
@@ -345,7 +348,7 @@ int main(int argc, char* argv[])
 			else if (!stricmp (mode.c_str(), "none"))
 				break; // The program starts preconfigured for this mode, so no action needs to be taken, besides breaking the while loop.
 			else
-				print ("That is not a valid mode!\nTry again...");
+				cout<<"That is not a valid mode!\nTry again...\n";
 		}
 	}
 	if (!backend::data::username)
