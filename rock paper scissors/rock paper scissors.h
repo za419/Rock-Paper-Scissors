@@ -59,6 +59,7 @@ namespace backend
 		vector<const result> cpuwonhist;
 		map<pair<const choice, const choice>, choice> lookup; // The first member of the pair is the computer's choice, the second the players pick, and the other is the players choice the next round.
 		bool lkupmode (false);
+		unsigned lookback(1); // How many pairs back to store and compare
 		char* username (nullptr);
 		std::fstream database;
 	}
@@ -333,6 +334,34 @@ namespace backend
 			break;
 		default:
 			return error;
+		}
+		// Difficulty alteration based on win percentage
+		unsigned long won(0);
+		for (size_t i = 0; i < data::cpuwonhist.size(); ++i)
+		{
+			if (data::cpuwonhist[i]==yes)
+				++won;
+		}
+		const double percent(won / (double)data::cpuwonhist.size());
+		if (percent > .66) // This is too low. Lower the difficulty if it is under one.
+		{
+			debug_print("\nWarning: Player win percentage under 33%: "); 
+			debug_print(1 - percent);
+			debug_print(".\nReducing difficulty level (if possible)...");
+			data::lookback = std::max(1u, data::lookback - unsigned((percent > .9 ? percent * 7 : 1))); // Limited to 1. We can't look back 0 rounds.
+			debug_print("Done.\nNew difficulty level: ");
+			debug_print(data::lookback);
+			debug_print("\n\n");
+		}
+		else if (percent < .33)
+		{
+			debug_print("\nWarning: Player win percentage over 66%: ");
+			debug_print(1 - percent);
+			debug_print(".\nIncreasing difficulty level (if reasonable)...");
+			data::lookback = std::min(1000u, data::lookback - unsigned((percent < .1 ? (1 - percent) * 7 : 1))); // Arbitrarily limited to 1000.
+			debug_print("Done.\nNew difficulty level: ");
+			debug_print(data::lookback);
+			debug_print("\n\n");
 		}
 	}
 	std::ostream& disphistto (std::ostream& stream)

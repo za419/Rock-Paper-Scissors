@@ -116,6 +116,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\programs\cs\headers\debugio.h" />
     <ClInclude Include="rock paper scissors.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
