@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <string>
 #define __NOSTACKREP
-#include "errors.h"
+#include "debugio.h"
 #undef __NOSTACKREP
 
 enum choice
@@ -597,12 +597,12 @@ namespace backend
 		database.close();
 		database.open((std::string(username)+".db").c_str(),std::ios::in|std::ios::out|std::ios::trunc); // Reopen to clear the file.
 		database.seekp(std::ios::beg);
-		debug_print ("Current document version number: ")
-		debug_print (docvers)
-		debug_print ('\n')
-		debug_print ("Saving document version number: ")
-		debug_print (docvers)
-		debug_print ('\n')
+		debug_print("Current document version number: ");
+		debug_print(docvers);
+		debug_print('\n');
+		debug_print("Saving document version number: ");
+		debug_print(docvers);
+		debug_print('\n');
 		database<<docvers<<'\n'<<(size_t)myhistory.size()<<'\n';
 		for (size_t i=0; i<myhistory.size(); i++)
 			database<<(int)myhistory[i]<<'\n';

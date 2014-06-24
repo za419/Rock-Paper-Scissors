@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include <algorithm>
 #include "rock paper scissors.h"
-#define stricmp _stricmp
+#define stricmp _stricmp // Macro to avoid pedantic warnings regarding POSIX complaince.
 using std::cout;
 using std::cin;
 using std::ifstream;
@@ -19,38 +19,38 @@ namespace backend
 		char ans[101];
 		while (true)
 		{
-			cout<<"Enter rock, paper, or scissors to play a round, statistics for win/loss/tie\nstatistics, history for rounds history, comphist for complex rounds history,\nclear to clear records and start again, or exit to exit:\n";
+			cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, or exit (e)or quit (q) to exit:\n";
 			cin>>ans;
-			if (!stricmp(ans,"rock"))
+			if (!stricmp(ans,"rock") || !stricmp(ans,"r"))
 				return rock;
-			else if (!stricmp(ans,"paper"))
+			else if (!stricmp(ans,"paper") || !stricmp(ans,"p"))
 				return paper;
-			else if (!stricmp(ans,"scissors"))
+			else if (!stricmp(ans,"scissors") || !stricmp(ans,"s"))
 				return scissors;
-			else if (!stricmp(ans,"statistics"))
+			else if (!stricmp(ans,"statistics") || !stricmp(ans,"st"))
 			{
 				disphistto(cout<<"\n    Statistics:\n");
 				return nochoice;
 			}
-			else if (!stricmp(ans,"history"))
+			else if (!stricmp(ans,"history") || !stricmp(ans, "h"))
 			{
 				history(cout<<"\n    Round history:\n\n");
 				cout<<"\nDone\n\n";
 				return nochoice;
 			}
-			else if (!stricmp(ans,"comphist"))
+			else if (!stricmp(ans,"comphist") || !stricmp(ans, "c"))
 			{
 				comphist(cout<<"\n    Complex round history:\n\n");
 				cout<<"\nDone.\n\n";
 				return nochoice;
 			}
-			else if (!stricmp(ans,"clear"))
+			else if (!stricmp(ans,"clear") || !stricmp(ans,"cl"))
 			{
 				cout<<"Ready to clear all history and restart the game... Are you sure you would like to do this?? (y/N)\n";
 				char res;
-				scanf ("%c", &res);
+				scanf_s ("%c", &res);
 				res='a';
-				if (scanf ("%c",&res)==0 || res=='\n' || toupper(res)=='N')
+				if (scanf_s ("%c",&res)==0 || res=='\n' || toupper(res)=='N')
 				{
 					cout<<"Undoing...Done.\n\n";
 					return nochoice;
@@ -62,7 +62,7 @@ namespace backend
 				data::plhistory.clear();
 				return nochoice;
 			}
-			else if (!stricmp(ans,"exit"))
+			else if (!stricmp(ans,"exit") || !stricmp(ans,"e") || !stricmp(ans,"quit") || !stricmp(ans,"q"))
 			{
 				cout<<"Now exiting...\nGoodbye!";
 				if (data::username)
@@ -79,7 +79,7 @@ namespace backend
 	}
 }
 
-int main(int argc, char* argv[])
+int _cdecl main(int argc, char* argv[])
 {
 	if (argc>1)
 	{
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 			if (argc>2)
 			{
 				backend::data::username=new char [strlen (argv[2])+1];
-				strcpy (backend::data::username, argv[2]);
+				strcpy_s(backend::data::username, strlen(argv[2]) + 1, argv[2]);
 			}
 			else
 			{
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 				std::string user;
 				std::getline (cin,user);
 				backend::data::username=new char [user.size()+1];
-				strcpy (backend::data::username, user.c_str());
+				strcpy_s (backend::data::username, user.size()+1, user.c_str());
 			}
 			const bool load ((bool)ifstream ((string(backend::data::username)+".db").c_str()));
 			backend::data::database.open ((string(backend::data::username)+".db").c_str(),ios::in|ios::out);
@@ -125,6 +125,7 @@ int main(int argc, char* argv[])
 						while (1)
 						{
 							cout << "Would you like to wipe the old database and reopen it (Y/N)?\n";
+							cin >> yn;
 							if (toupper (yn)=='Y')
 							{
 								cout<<"Ok...Wiping old database and starting anew...\n";
@@ -137,6 +138,7 @@ int main(int argc, char* argv[])
 								while (1)
 								{
 									cout<<"Ok...Would you like to backup the old database and make a new one (Y/N)?\n";
+									cin >> yn;
 									if (toupper (yn)=='Y')
 									{
 										cout<<"Backing up...\n";
@@ -155,7 +157,7 @@ int main(int argc, char* argv[])
 									{
 										cout<<"Ok...switching to session memory mode...\n";
 										delete[] backend::data::username;
-											backend::data::username=nullptr;
+										backend::data::username=nullptr;
 										backend::data::database.close();
 										break;
 									}
@@ -189,7 +191,7 @@ int main(int argc, char* argv[])
 					std::string user;
 					std::getline (cin,user);
 					backend::data::username=new char [user.size()+1];
-					strcpy (backend::data::username, user.c_str());
+					strcpy_s (backend::data::username, user.size()+1, user.c_str());
 					const bool load ((bool)ifstream (backend::data::username));
 					backend::data::database.open (backend::data::username);
 					if (load)
@@ -204,6 +206,7 @@ int main(int argc, char* argv[])
 								while (1)
 								{
 									cout<<"Would you like to wipe your corrupted database to reopen it (Y/N)?\n";
+									cin >> yn;
 									if (toupper (yn)=='Y')
 									{
 										cout<<"Ok...Wiping old database and starting anew...\n";
@@ -216,6 +219,7 @@ int main(int argc, char* argv[])
 										while (1)
 										{
 											cout<<"Ok...Would you like to backup the old database and make a new one (Y/N)?\n";
+											cin >> yn;
 											if (toupper (yn)=='Y')
 											{
 												cout<<"Backing up...\n";
@@ -273,7 +277,7 @@ int main(int argc, char* argv[])
 			cout<<"Please enter your memorymode.\n";
 			string mode;
 			getline (cin, mode);
-			if (!stricmp(mode.c_str(), "database"))
+			if (!stricmp(mode.c_str(), "database") || !stricmp(mode.c_str(), "d"))
 			{
 				backend::data::lkupmode=true;
 				backend::getchoice=backend::sessmem_getchoice;
@@ -281,7 +285,7 @@ int main(int argc, char* argv[])
 				std::string user;
 				std::getline (cin,user);
 				backend::data::username=new char [user.size()+1];
-				strcpy (backend::data::username, user.c_str());
+				strcpy_s (backend::data::username, user.size()+1, user.c_str());
 				const bool load ((bool)ifstream ((string(backend::data::username)+".db").c_str()));
 				backend::data::database.open ((string(backend::data::username)+".db").c_str(), ios::in|ios::out);
 				if (load)
@@ -296,6 +300,7 @@ int main(int argc, char* argv[])
 							while (1)
 							{
 								cout<<"Would you like to wipe your corrupted database to reopen it (Y/N)?\n";
+								cin >> yn;
 								if (toupper (yn)=='Y')
 								{
 									cout<<"Ok...Wiping old database and starting anew...\n";
@@ -308,6 +313,7 @@ int main(int argc, char* argv[])
 									while (1)
 									{
 										cout<<"Ok...Would you like to backup the old database and make a new one (Y/N)?";
+										cin >> yn;
 										if (toupper (yn)=='Y')
 										{
 											cout<<"Alright...Doing it...\n";
@@ -339,13 +345,13 @@ int main(int argc, char* argv[])
 				}
 				break;
 			}
-			else if (!stricmp (mode.c_str(), "session"))
+			else if (!stricmp (mode.c_str(), "session") || !stricmp(mode.c_str(), "s"))
 			{
 				backend::data::lkupmode=true;
 				backend::getchoice=backend::sessmem_getchoice;
 				break;
 			}
-			else if (!stricmp (mode.c_str(), "none"))
+			else if (!stricmp (mode.c_str(), "none") || !stricmp(mode.c_str(), "n"))
 				break; // The program starts preconfigured for this mode, so no action needs to be taken, besides breaking the while loop.
 			else
 				cout<<"That is not a valid mode!\nTry again...\n";
@@ -413,6 +419,7 @@ int main(int argc, char* argv[])
 			cout<<"&%&#&@#$$@! Internal error in result recovery! Aborting...\n";
 			return 1;
 		}
+		cout << "\n\n\n";
 	}
 	return 0;
 }
