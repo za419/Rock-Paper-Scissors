@@ -554,6 +554,7 @@ namespace backend
 			debug_print(header);
 			debug_print(", expected ");
 			debug_print(MAGIC_NUMBER);
+			debug_print('\n');
 			if (failOnBadHeader(docvers))
 			{
 				debug << "Current document version, " << docvers << ", specifies for load() to not attempt to continue a document load after a bad header read.\n";
@@ -671,7 +672,7 @@ namespace backend
 			database >> curr;
 			lookup[make_pair(scissors, scissors)] = (choice)curr;
 			return success;
-			/*case 1: // Loader code for the first version revision: Add in initial header support. Note that there is no support for endianness checking et al.
+		/*case 1: // Loader code for the first version revision: Add in initial header support. Note that there is no support for endianness checking et al.
 			if (header != 0xBADC0DE)
 			{
 				debug_print("Failure on reading header number: Read ");
@@ -753,7 +754,7 @@ namespace backend
 		debug_print("Saving document version number: ");
 		debug_print(docvers);
 		debug_print('\n');
-		database << std::ios::hex << MAGIC_NUMBER << std::ios::dec << '\n' << docvers << '\n' << (size_t)myhistory.size() << '\n';
+		database << MAGIC_NUMBER << '\n' << docvers << '\n' << (size_t)myhistory.size() << '\n';
 		for (size_t i = 0; i<myhistory.size(); i++)
 			database << (int)myhistory[i] << '\n';
 		database << (size_t)plhistory.size() << '\n';
