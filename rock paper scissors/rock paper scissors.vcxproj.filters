@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\Document Format specs">
+      <UniqueIdentifier>{178c87fb-8090-40d6-9b2d-a7c4b53a0b43}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -35,5 +38,13 @@
     <ClCompile Include="rock paper scissors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Version 0.txt">
+      <Filter>Resource Files\Document Format specs</Filter>
+    </Text>
+    <Text Include="Version 1.txt">
+      <Filter>Resource Files\Document Format specs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

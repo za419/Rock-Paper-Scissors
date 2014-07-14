@@ -1,0 +1,61 @@
+Version 1 document format specification.
+
+This is the first revision of the rock paper scissors database format.
+  Major addition: Magic number header
+
+Storage mode: Text.
+Magic number: 0xBADC0DE
+  Crash on bad read: FALSE
+Error detection facilities: <NONE>
+Error recovery facilities: <NONE>
+Endianness: <PLATFORM>
+Endian adaptation: <OS>
+Cross-platform storage ability: <NOT GUARANTEED>
+  Dependent on: If the reads will succeed with the same separation character.
+                Platform Endianness
+				  If a big endian file is read on a little endian platform, or vice versa, a bad header read (Debug note, no crash) is likely to occur unless <fstream> compensates in text mode.
+The data structure is as follows:
+
+___________________________________________________________________________
+|                                                                          |
+|                    Magic number header (0xBADC0DE)                       |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                           Version number (1)                             |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                            Computer History:                             |
+|                             Count of Entries                             |
+|                                [Entries]                                 |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                             Player History:                              |
+|                             Count of Entries                             |
+|                                 [Entries]                                |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                            Win/loss/tie History:                         |
+|                              Count of Entries                            |
+|                                  [Entries]                               |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                       Choice for rock/rock previous round                |
+|                       Choice for rock/paper previous round               |
+|                     Choice for rock/scissors previous round              |
+|                       Choice for paper/rock previous round               |
+|                      Choice for paper/paper previous round               |
+|                    Choice for paper/scissors previous round              |
+|                     Choice for scissors/rock previous round              |
+|                    Choice for scissors/paper previous round              |
+|                  Choice for scissors/scissors previous round             |
+|                                                                          |
+____________________________________________________________________________
+
+
+Note that, like version 0, all separator characters are a newline ('\n'), however, the loader code DOES NOT verify that this is the case.
+As long as consecutive unsigned fstream reads succeed, the loader (should) function properly.
