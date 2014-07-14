@@ -371,7 +371,7 @@ int _cdecl main(int argc, char* argv[])
 			cout<<"$#&! An internal error has occured. The record of the previous round has been deleted.\n";
 			continue;
 		}
-		cout<<"I had: ";
+		cout<<"\n\nI had: ";
 		switch (backend::data::myhistory.back())
 		{
 		case rock:

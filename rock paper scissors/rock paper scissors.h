@@ -1,4 +1,5 @@
 // Rock paper scissors.h: Defines the backend for rock paper scissors functionality.
+// TODO: Adjust session and database modes to make use of the lookback property
 
 #ifndef __RPS_BACKEND_ENGINE
 #define __RPS_BACKEND_ENGINE
@@ -63,11 +64,46 @@ namespace backend
 		char* username (nullptr);
 		std::fstream database;
 	}
-	const unsigned docvers (0);
-	const choice randchoice () throw ()
+	namespace hidden // Standard data hiding namespace.
 	{
-		srand ((unsigned)time(NULL));
-		return choice(rand()%(int(scissors)+1));
+		namespace rockPaperScissors
+		{
+			struct randSeeder // Serves no function except to call srand() on construction. Main intent is to seed rand() on first init.
+			{
+				randSeeder() throw()
+				{
+					srand((unsigned)time(NULL));
+				}
+			} randSeedInit;
+		}
+	}
+	const unsigned docvers(1);
+	const unsigned MAGIC_NUMBER(0xBADC0DE);
+
+	bool failOnBadHeader(unsigned versionCode) // Returns whether the document version standard specified by versionCode demands full load failure if a bad MAGIC_NUMBER is read.
+	{
+		switch (versionCode)
+		{
+		case 0: // Inital version.
+			return false; // Document version 0 did not provide for any MAGIC_NUMBER. It doesn't matter what goes here.
+		case 1: // First document format update: Add in the first MAGIC_NUMBER header. Note that no endianness checking is done in version 1.
+			return false; // Document format 1 only has MAGIC_NUMBER as a basic check. There is no reason we should crash, its most likely a saver or loader bug.
+		default:
+#ifdef _DEBUG
+#ifndef NDEBUG
+			return true; // Crash by default if debugging behavior is both enabled and not disabled.
+#else
+			return false; // If debugging behavior is disabled, continue by default.
+#endif
+#else
+			return false; // If debugging behavior is not enabled, continue by default.
+#endif
+		}
+	}
+
+	const choice randchoice() throw ()
+	{
+		return choice(rand() % (int(scissors) + 1));
 	}
 	const choice nomem_getchoice () throw () // Does not go back into the records to make an algorithm.
 	{
@@ -506,75 +542,155 @@ namespace backend
 		}
 		return success;
 	}
-	const rescode load () throw ()
+	const rescode load() throw ()
 	{
 		using namespace data;
-		database.seekg (std::ios::beg);
+		database.seekg(std::ios::beg);
+		unsigned header;
+		database >> header;
+		if (header != MAGIC_NUMBER)
+		{
+			debug_print("Failure on reading header number: Read ");
+			debug_print(header);
+			debug_print(", expected ");
+			debug_print(MAGIC_NUMBER);
+			if (failOnBadHeader(docvers))
+			{
+				debug << "Current document version, " << docvers << ", specifies for load() to not attempt to continue a document load after a bad header read.\n";
+				return failure;
+			}
+			else
+				debug << "Continuing as per document specifications.\n";
+		}
 		unsigned vers;
-		database>>vers;
-		debug<<"Current document version number: "<<docvers<<'\n';
-		debug<<"Read database version number: "<<vers<<'\n';
-		if (vers!=docvers)
+		database >> vers;
+		debug << "Current document version number: " << docvers << '\n';
+		debug << "Read database version number: " << vers << '\n';
+		if (vers != docvers)
 			return failure;
 		int curr;
 		size_t num;
-		database>>num; // Computer history load.
+		database >> num; // Computer history load.
 		myhistory.clear();
-		debug<<"Read myhistory size: "<<num<<'\n';
+		debug << "Read myhistory size: " << num << '\n';
 		for (; num; --num)
 		{
-			database>>curr;
-			myhistory.push_back ((choice)curr);
+			database >> curr;
+			myhistory.push_back((choice)curr);
 		}
-		database>>num; // Player history load.
+		database >> num; // Player history load.
 		plhistory.clear();
-		debug<<"Read plhistory size: "<<num<<'\n';
+		debug << "Read plhistory size: " << num << '\n';
 		for (; num; --num)
 		{
-			database>>curr;
-			plhistory.push_back ((choice)curr);
+			database >> curr;
+			plhistory.push_back((choice)curr);
 		}
-		database>>num; // Win/loss history load.
+		database >> num; // Win/loss history load.
 		cpuwonhist.clear();
-		debug<<"Read cpuwonhist size: "<<num<<'\n';
+		debug << "Read cpuwonhist size: " << num << '\n';
 		for (; num; --num)
 		{
-			database>>curr;
-			cpuwonhist.push_back ((result)curr);
+			database >> curr;
+			cpuwonhist.push_back((result)curr);
 		}
 		// Lookup load.
-		database>>curr;
-		lookup[make_pair (rock, rock)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (rock, paper)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (rock, scissors)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (paper, rock)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (paper, paper)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (paper, scissors)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (scissors, rock)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (scissors, paper)]=(choice)curr;
-		database>>curr;
-		lookup[make_pair (scissors, scissors)]=(choice)curr;
+		database >> curr;
+		lookup[make_pair(rock, rock)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(rock, paper)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(rock, scissors)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(paper, rock)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(paper, paper)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(paper, scissors)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(scissors, rock)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(scissors, paper)] = (choice)curr;
+		database >> curr;
+		lookup[make_pair(scissors, scissors)] = (choice)curr;
 		return success;
 	}
-	const rescode compatload () throw ()
+	const rescode compatload() throw ()
 	{
 		using namespace data;
-		unsigned vers;
-		database>>vers;
+		database.seekg(std::ios::beg);
+		unsigned header, vers;
+		database >> header;
+		if (header == 0) // If the first read is 0, then we are in document version 0, therefore we need to forgo the next read.
+			vers = 0;
+		else
+			database >> vers;
 		switch (vers)
 		{
-		case 0:
+		case 0: // Initial version loader.
+			int curr;
+			size_t num;
+			database >> num; // Computer history load.
+			myhistory.clear();
+			for (; num; --num)
+			{
+				database >> curr;
+				myhistory.push_back((choice)curr);
+			}
+			database >> num; // Player history load.
+			plhistory.clear();
+			for (; num; --num)
+			{
+				database >> curr;
+				myhistory.push_back((choice)curr);
+			}
+			database >> num; // Win/loss history load.
+			cpuwonhist.clear();
+			for (; num; --num)
+			{
+				database >> curr;
+				cpuwonhist.push_back((result)curr);
+			}
+			// Lookup load.
+			database >> curr;
+			lookup[make_pair(rock, rock)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(rock, paper)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(rock, scissors)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(paper, rock)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(paper, paper)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(paper, scissors)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(scissors, rock)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(scissors, paper)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(scissors, scissors)] = (choice)curr;
+			return success;
+			/*case 1: // Loader code for the first version revision: Add in initial header support. Note that there is no support for endianness checking et al.
+			if (header != 0xBADC0DE)
+			{
+				debug_print("Failure on reading header number: Read ");
+				debug_print(header);
+				debug_print(", expected ");
+				debug_print(0xBADC0DE);
+				if (failOnBadHeader(1))
+				{
+					debug << "Current document version, " << docvers << ", specifies for load() to not attempt to continue a document load after a bad header read.\n";
+					return failure;
+				}
+				else
+					debug << "Continuing as per document specifications.\n";
+			}
 			int curr;
 			size_t num;
 			database>>num; // Computer history load.
 			myhistory.clear();
+			debug<<"Read myhistory size: "<<num<<'\n';
 			for (; num; --num)
 			{
 				database>>curr;
@@ -582,13 +698,15 @@ namespace backend
 			}
 			database>>num; // Player history load.
 			plhistory.clear();
+			debug<<"Read plhistory size: "<<num<<'\n';
 			for (; num; --num)
 			{
 				database>>curr;
-				myhistory.push_back ((choice)curr);
+				plhistory.push_back ((choice)curr);
 			}
 			database>>num; // Win/loss history load.
 			cpuwonhist.clear();
+			debug<<"Read cpuwonhist size: "<<num<<'\n';
 			for (; num; --num)
 			{
 				database>>curr;
@@ -613,43 +731,46 @@ namespace backend
 			lookup[make_pair (scissors, paper)]=(choice)curr;
 			database>>curr;
 			lookup[make_pair (scissors, scissors)]=(choice)curr;
-			return success;
-		/*case docvers: // Uncomment this label when the current document version is not already in the switch.
-			return load();*/
+			return success;*/
+		case docvers:
+			return load();
 		default:
 			return failure;
 		}
 	}
-	void save () throw ()
+	void save() throw ()
 	{
 		using namespace data;
 		database.close();
-		database.open((std::string(username)+".db").c_str(),std::ios::in|std::ios::out|std::ios::trunc); // Reopen to clear the file.
+		database.open((std::string(username) + ".db").c_str(), std::ios::in | std::ios::out | std::ios::trunc); // Reopen to clear the file.
 		database.seekp(std::ios::beg);
+		debug_print("Magic code: ");
+		debug_print(MAGIC_NUMBER);
+		debug_print('\n');
 		debug_print("Current document version number: ");
 		debug_print(docvers);
 		debug_print('\n');
 		debug_print("Saving document version number: ");
 		debug_print(docvers);
 		debug_print('\n');
-		database<<docvers<<'\n'<<(size_t)myhistory.size()<<'\n';
-		for (size_t i=0; i<myhistory.size(); i++)
-			database<<(int)myhistory[i]<<'\n';
-		database<<(size_t)plhistory.size()<<'\n';
-		for (size_t i=0; i<plhistory.size(); i++)
-			database<<(int)plhistory[i]<<'\n';
-		database<<(size_t)cpuwonhist.size()<<'\n';
-		for (size_t i=0; i<cpuwonhist.size(); i++)
-			database<<(int)cpuwonhist[i]<<'\n';
-		database<<(int)lookup[make_pair(rock,rock)]<<'\n';
-		database<<(int)lookup[make_pair(rock,paper)]<<'\n';
-		database<<(int)lookup[make_pair(rock,scissors)]<<'\n';
-		database<<(int)lookup[make_pair(paper,rock)]<<'\n';
-		database<<(int)lookup[make_pair(paper,paper)]<<'\n';
-		database<<(int)lookup[make_pair(paper,scissors)]<<'\n';
-		database<<(int)lookup[make_pair(scissors,rock)]<<'\n';
-		database<<(int)lookup[make_pair(scissors,paper)]<<'\n';
-		database<<(int)lookup[make_pair(scissors,scissors)]<<'\n';
+		database << std::ios::hex << MAGIC_NUMBER << std::ios::dec << '\n' << docvers << '\n' << (size_t)myhistory.size() << '\n';
+		for (size_t i = 0; i<myhistory.size(); i++)
+			database << (int)myhistory[i] << '\n';
+		database << (size_t)plhistory.size() << '\n';
+		for (size_t i = 0; i<plhistory.size(); i++)
+			database << (int)plhistory[i] << '\n';
+		database << (size_t)cpuwonhist.size() << '\n';
+		for (size_t i = 0; i<cpuwonhist.size(); i++)
+			database << (int)cpuwonhist[i] << '\n';
+		database << (int)lookup[make_pair(rock, rock)] << '\n';
+		database << (int)lookup[make_pair(rock, paper)] << '\n';
+		database << (int)lookup[make_pair(rock, scissors)] << '\n';
+		database << (int)lookup[make_pair(paper, rock)] << '\n';
+		database << (int)lookup[make_pair(paper, paper)] << '\n';
+		database << (int)lookup[make_pair(paper, scissors)] << '\n';
+		database << (int)lookup[make_pair(scissors, rock)] << '\n';
+		database << (int)lookup[make_pair(scissors, paper)] << '\n';
+		database << (int)lookup[make_pair(scissors, scissors)] << '\n';
 	}
 }
 #endif
