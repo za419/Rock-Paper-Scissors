@@ -1,5 +1,5 @@
--// rock paper scissors.cpp : Defines the entry point for the console application.
-//
+// rock paper scissors.cpp : Defines the entry point for the console application.
+// TODO: Add support for no password on database creation (except on command line)
 
 #include "stdafx.h"
 #include <algorithm>
@@ -180,7 +180,6 @@ int _cdecl main(int argc, char* argv[])
 						backend::data::password.clear();
 						backend::data::username = nullptr;
 						backend::data::database.close();
-						break;
 					}
 				}
 				else if (res==bad)
@@ -190,7 +189,6 @@ int _cdecl main(int argc, char* argv[])
 					backend::data::password.clear();
 					backend::data::username = nullptr;
 					backend::data::database.close();
-					break;
 				}
 			}
 		}

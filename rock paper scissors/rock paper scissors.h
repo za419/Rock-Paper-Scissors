@@ -645,11 +645,11 @@ namespace backend
 			vers = 0;
 		else
 			database >> vers;
+		int curr;
+		size_t num;
 		switch (vers)
 		{
 		case 0: // Initial version loader.
-			int curr;
-			size_t num;
 			database >> num; // Computer history load.
 			myhistory.clear();
 			for (; num; --num)
@@ -706,8 +706,6 @@ namespace backend
 				else
 					debug << "Continuing as per document specifications.\n";
 			}
-			int curr;
-			size_t num;
 			database>>num; // Computer history load.
 			myhistory.clear();
 			debug<<"Read myhistory size: "<<num<<'\n';
@@ -774,8 +772,6 @@ namespace backend
 				debug << "Invalid password: Was provided with " << pass << ", read " << password << ".\n";
 				return bad;
 			}
-			int curr;
-			size_t num;
 			database >> num; // Computer history load.
 			myhistory.clear();
 			debug << "Read myhistory size: " << num << '\n';
