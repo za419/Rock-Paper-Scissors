@@ -90,7 +90,7 @@ namespace backend
 			return false; // Document version 0 did not provide for any MAGIC_NUMBER. It doesn't matter what goes here.
 		case 1: // First document format update: Add in the first MAGIC_NUMBER header. Note that no function checking is done in version 1.
 			return false; // Document format 1 only has MAGIC_NUMBER as a basic check. There is no reason we should crash, its most likely a saver or loader bug.
-		case 2: // Second document format updata: Add in basic password support
+		case 2: // Second document format update: Add in basic password support
 #ifdef _DEBUG // Since document format 2 was introduced as soon as MAGIC_NUMBER checking was completed, enable failure in debugging to detect regressions.
 #ifndef NDEBUG
 			return true; // Crash by default if debugging behavior is both enabled and not disabled.

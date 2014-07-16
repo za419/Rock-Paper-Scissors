@@ -19,32 +19,35 @@ namespace backend
 		char ans[101];
 		while (true)
 		{
-			cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, or exit (e)or quit (q) to exit:\n";
+			if (backend::data::username)
+				cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, save (sv) to save your data to dick, or exit (e)or quit (q) to exit:\n";
+			else
+				cout << "Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, or exit (e)or quit (q) to exit:\n";
 			cin>>ans;
-			if (!stricmp(ans,"rock") || !stricmp(ans,"r"))
+			if (!(stricmp(ans,"rock") && stricmp(ans,"r")))
 				return rock;
-			else if (!stricmp(ans,"paper") || !stricmp(ans,"p"))
+			else if (!(stricmp(ans,"paper") && stricmp(ans,"p")))
 				return paper;
-			else if (!stricmp(ans,"scissors") || !stricmp(ans,"s"))
+			else if (!(stricmp(ans,"scissors") && stricmp(ans,"s")))
 				return scissors;
-			else if (!stricmp(ans,"statistics") || !stricmp(ans,"st"))
+			else if (!(stricmp(ans,"statistics") && stricmp(ans,"st")))
 			{
 				disphistto(cout<<"\n    Statistics:\n");
 				return nochoice;
 			}
-			else if (!stricmp(ans,"history") || !stricmp(ans, "h"))
+			else if (!(stricmp(ans,"history") && stricmp(ans, "h")))
 			{
 				history(cout<<"\n    Round history:\n\n");
 				cout<<"\nDone\n\n";
 				return nochoice;
 			}
-			else if (!stricmp(ans,"comphist") || !stricmp(ans, "c"))
+			else if (!(stricmp(ans,"comphist") && stricmp(ans, "c")))
 			{
 				comphist(cout<<"\n    Complex round history:\n\n");
 				cout<<"\nDone.\n\n";
 				return nochoice;
 			}
-			else if (!stricmp(ans,"clear") || !stricmp(ans,"cl"))
+			else if (!(stricmp(ans,"clear") && stricmp(ans,"cl")))
 			{
 				cout<<"Ready to clear all history and restart the game... Are you sure you would like to do this?? (y/N)\n";
 				char res;
@@ -62,7 +65,14 @@ namespace backend
 				data::plhistory.clear();
 				return nochoice;
 			}
-			else if (!stricmp(ans,"exit") || !stricmp(ans,"e") || !stricmp(ans,"quit") || !stricmp(ans,"q"))
+			else if (backend::data::username && !(stricmp(ans, "save") && stricmp(ans, "sv")))
+			{
+				cout << "Saving data...\n";
+				save();
+				cout << "Data saved.\n\n";
+				return nochoice;
+			}
+			else if (!(stricmp(ans,"exit") && stricmp(ans,"e") && stricmp(ans,"quit") && stricmp(ans,"q")))
 			{
 				cout<<"Now exiting...\nGoodbye!";
 				if (data::username)
@@ -155,7 +165,7 @@ int _cdecl main(int argc, char* argv[])
 										ofstream _new ((string(backend::data::username)+".DB.BAK").c_str(), ios::out);
 										_new.write (old, filsize);
 										_new.close();
-										cout<<"Done.\nBackup next to the program executable, as ",backend::data::username,".DB.BAK.\n";
+										cout<<"Done.\nBackup next to the program executable, as "<<backend::data::username<<".DB.BAK.\n";
 										delete[] old;
 										break;
 									}
@@ -255,7 +265,7 @@ int _cdecl main(int argc, char* argv[])
 												ofstream _new ((string(backend::data::username)+".DB.BAK").c_str(), ios::out);
 												_new.write (old, filsize);
 												_new.close();
-												cout<<"Backup next to the program executable, as ",backend::data::username,".DB.BAK.\n";
+												cout<<"Backup next to the program executable, as "<<backend::data::username<<".DB.BAK.\n";
 												delete[] old;
 												break;
 											}
@@ -370,7 +380,7 @@ int _cdecl main(int argc, char* argv[])
 											ofstream _new ((string(backend::data::username)+".DB.BAK").c_str(), ios::out);
 											_new.write (old, filsize);
 											_new.close();
-											cout<<"Backup next to the program executable, as ",backend::data::username,".DB.BAK.\n";
+											cout<<"Backup next to the program executable, as "<<backend::data::username<<".DB.BAK.\n";
 											delete[] old;
 											break;
 										}
