@@ -20,7 +20,7 @@ namespace backend
 		while (true)
 		{
 			if (backend::data::username)
-				cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, save (sv) to save your data to disk, or exit (e) or quit (q) to exit:\n";
+				cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, save (sv) to save your data to disk, change (cp) to update your password, or exit (e) or quit (q) to exit:\n";
 			else
 				cout << "Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, or exit (e)or quit (q) to exit:\n";
 			cin>>ans;
@@ -65,13 +65,6 @@ namespace backend
 				data::plhistory.clear();
 				return nochoice;
 			}
-			else if (backend::data::username && !(stricmp(ans, "save") && stricmp(ans, "sv")))
-			{
-				cout << "Saving data...\n";
-				save();
-				cout << "Data saved.\n\n";
-				return nochoice;
-			}
 			else if (!(stricmp(ans,"exit") && stricmp(ans,"e") && stricmp(ans,"quit") && stricmp(ans,"q")))
 			{
 				cout<<"Now exiting...\nGoodbye!";
@@ -82,6 +75,84 @@ namespace backend
 					delete[] data::username;
 				}
 				exit(0);
+			}
+			else if (backend::data::username)
+			{
+				if (!(stricmp(ans, "save") && stricmp(ans, "sv")))
+				{
+					cout << "Saving data...\n";
+					save();
+					cout << "Data saved.\n\n";
+					return nochoice;
+				}
+				else if (!(stricmp(ans, "change") && stricmp(ans, "cp")))
+				{
+					string pass;
+					while (true)
+					{
+						cout << "Would you like to save your data prior to password change? (Y/n) ";
+						getline(cin, pass);
+						if (pass == "y" || pass == "Y" || pass == "")
+						{
+							cout << "Saving...\n";
+							backend::save();
+							cout << "Data saved.\n\n";
+							break;
+						}
+						else if (pass == "n" || pass == "N")
+						{
+							cout << "OK. Forgoing data save.";
+							break;
+						}
+					}
+					while (true)
+					{
+						cout << "For verification\'s sake, please enter your current password.\n";
+						getline(cin, pass);
+						if (pass != backend::data::password)
+							cout << "Incorrect password.\nPlease try again.\n\n";
+						else
+							break;
+					}
+					bool cont(true);
+					while (cont)
+					{
+						cout << "Please enter your new password.\n";
+						getline(cin, pass);
+						while (true) // Note, when the password system gets an improvement, this needs to be replaced with a "Please reenter your password" system.
+						{
+							cout << "Please confirm, your new password is \"" << pass << "\". (y/N)";
+							string tmp;
+							getline(cin, tmp);
+							if (tmp == "n" || tmp == "N" || tmp == "")
+								break;
+							else if (tmp == "y" || tmp == "Y")
+							{
+								cout << "OK.\n";
+								cont = false;
+								break;
+							}
+						}
+					}
+					while (true)
+					{
+						cout << "Would you like to save your data with your new password? (Y/n) ";
+						getline(cin, pass);
+						if (pass == "y" || pass == "Y" || pass == "")
+						{
+							cout << "Saving...\n";
+							backend::save();
+							cout << "Data saved.\n\n";
+							break;
+						}
+						else if (pass == "n" || pass == "N")
+						{
+							cout << "OK. Forgoing data save.";
+							break;
+						}
+					}
+					return nochoice;
+				}
 			}
 			else
 				cout<<"Invalid response: Try again!\n";
