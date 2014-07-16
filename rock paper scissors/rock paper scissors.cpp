@@ -1,5 +1,5 @@
 // rock paper scissors.cpp : Defines the entry point for the console application.
-// TODO: Add support for no password on database creation (except on command line)
+// TODO: Add support for no password on database creation (except on command line), maybe add password salting?
 
 #include "stdafx.h"
 #include <algorithm>
@@ -82,6 +82,7 @@ namespace backend
 				{
 					cout << "Saving data...\n";
 					save();
+					backend::data::database.flush();
 					cout << "Data saved.\n\n";
 					return nochoice;
 				}
@@ -90,18 +91,21 @@ namespace backend
 					string pass;
 					while (true)
 					{
+						cin.clear();
+						cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 						cout << "Would you like to save your data prior to password change? (Y/n) ";
 						getline(cin, pass);
 						if (pass == "y" || pass == "Y" || pass == "")
 						{
 							cout << "Saving...\n";
 							backend::save();
+							backend::data::database.flush();
 							cout << "Data saved.\n\n";
 							break;
 						}
 						else if (pass == "n" || pass == "N")
 						{
-							cout << "OK. Forgoing data save.";
+							cout << "OK. Forgoing data save.\n";
 							break;
 						}
 					}
@@ -134,6 +138,7 @@ namespace backend
 							}
 						}
 					}
+					backend::data::password = pass;
 					while (true)
 					{
 						cout << "Would you like to save your data with your new password? (Y/n) ";
@@ -142,15 +147,17 @@ namespace backend
 						{
 							cout << "Saving...\n";
 							backend::save();
+							backend::data::database.flush();
 							cout << "Data saved.\n\n";
 							break;
 						}
 						else if (pass == "n" || pass == "N")
 						{
-							cout << "OK. Forgoing data save.";
+							cout << "OK. Forgoing data save.\n\n";
 							break;
 						}
 					}
+					backend::data::password = pass;
 					return nochoice;
 				}
 			}
