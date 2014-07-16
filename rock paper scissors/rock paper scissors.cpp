@@ -20,7 +20,7 @@ namespace backend
 		while (true)
 		{
 			if (backend::data::username)
-				cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, save (sv) to save your data to dick, or exit (e)or quit (q) to exit:\n";
+				cout<<"Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, save (sv) to save your data to disk, or exit (e) or quit (q) to exit:\n";
 			else
 				cout << "Enter rock (r), paper (p), or scissors (s) to play a round, statistics (st) for win/loss/tie statistics, history (h) for rounds history, comphist (c) for\ncomplex rounds history, clear (cl) to clear records and start again, or exit (e)or quit (q) to exit:\n";
 			cin>>ans;
