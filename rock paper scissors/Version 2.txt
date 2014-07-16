@@ -1,0 +1,67 @@
+Version 2 document format specification.
+
+This is the second revision of the rock paper scissors database format.
+  Major addition: Database password
+
+Storage mode: Text.
+Magic number: 0xBADC0DE
+  Crash on bad read: <DEBUG>
+Password stored as: PLAINTEXT
+  (The author acknowledges that this is not much more secure than not having a password at all)
+Error detection facilities: <NONE>
+Error recovery facilities: <NONE>
+Endianness: <PLATFORM>
+Endian adaptation: <OS>
+Cross-platform storage ability: <NOT GUARANTEED>
+  Dependent on: If the reads will succeed with the same separation character.
+                Platform Endianness
+				  If a big endian file is read on a little endian platform, or vice versa, a bad header read (Debug note, no crash) is likely to occur unless <fstream> compensates in text mode.
+The data structure is as follows:
+
+___________________________________________________________________________
+|                                                                          |
+|              Magic number header (0xBADC0DE, AKA 195936478)              |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                           Version number (2)                             |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                                Password                                  |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                            Computer History:                             |
+|                             Count of Entries                             |
+|                                [Entries]                                 |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                             Player History:                              |
+|                             Count of Entries                             |
+|                                 [Entries]                                |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                            Win/loss/tie History:                         |
+|                              Count of Entries                            |
+|                                  [Entries]                               |
+|                                                                          |
+|--------------------------------------------------------------------------|
+|                                                                          |
+|                       Choice for rock/rock previous round                |
+|                       Choice for rock/paper previous round               |
+|                     Choice for rock/scissors previous round              |
+|                       Choice for paper/rock previous round               |
+|                      Choice for paper/paper previous round               |
+|                    Choice for paper/scissors previous round              |
+|                     Choice for scissors/rock previous round              |
+|                    Choice for scissors/paper previous round              |
+|                  Choice for scissors/scissors previous round             |
+|                                                                          |
+____________________________________________________________________________
+
+
+Note that, like versions 0 and 1, all separator characters are a newline ('\n'), however, the loader code DOES NOT verify that this is the case, excepting the password read.
+Otherwise, as long as consecutive unsigned fstream reads succeed, the loader (should) function properly.

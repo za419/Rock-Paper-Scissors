@@ -134,6 +134,7 @@
   <ItemGroup>
     <Text Include="Version 0.txt" />
     <Text Include="Version 1.txt" />
+    <Text Include="Version 2.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

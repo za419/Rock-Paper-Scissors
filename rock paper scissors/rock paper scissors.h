@@ -44,7 +44,8 @@ enum respos // Result position
 enum rescode // Result code
 {
 	success, // Succeeded
-	failure // Failed
+	failure, // Failed
+	bad // Failed due to invalid request
 };
 
 namespace backend
@@ -62,6 +63,7 @@ namespace backend
 		bool lkupmode (false);
 		unsigned lookback(1); // How many pairs back to store and compare
 		char* username (nullptr);
+		std::string password;
 		std::fstream database;
 	}
 	namespace hidden // Standard data hiding namespace.
@@ -77,7 +79,7 @@ namespace backend
 			} randSeedInit;
 		}
 	}
-	const unsigned docvers(1);
+	const unsigned docvers(2);
 	const unsigned MAGIC_NUMBER(0xBADC0DE);
 
 	bool failOnBadHeader(unsigned versionCode) // Returns whether the document version standard specified by versionCode demands full load failure if a bad MAGIC_NUMBER is read.
@@ -86,8 +88,18 @@ namespace backend
 		{
 		case 0: // Inital version.
 			return false; // Document version 0 did not provide for any MAGIC_NUMBER. It doesn't matter what goes here.
-		case 1: // First document format update: Add in the first MAGIC_NUMBER header. Note that no endianness checking is done in version 1.
+		case 1: // First document format update: Add in the first MAGIC_NUMBER header. Note that no function checking is done in version 1.
 			return false; // Document format 1 only has MAGIC_NUMBER as a basic check. There is no reason we should crash, its most likely a saver or loader bug.
+		case 2: // Second document format updata: Add in basic password support
+#ifdef _DEBUG // Since document format 2 was introduced as soon as MAGIC_NUMBER checking was completed, enable failure in debugging to detect regressions.
+#ifndef NDEBUG
+			return true; // Crash by default if debugging behavior is both enabled and not disabled.
+#else
+			return false; // If debugging behavior is disabled, continue by default.
+#endif
+#else
+			return false; // If debugging behavior is not enabled, continue by default.
+#endif
 		default:
 #ifdef _DEBUG
 #ifndef NDEBUG
@@ -569,6 +581,13 @@ namespace backend
 		debug << "Read database version number: " << vers << '\n';
 		if (vers != docvers)
 			return failure;
+		std::string pass;
+		std::getline(database, pass);
+		if (pass != password)
+		{
+			debug << "Invalid password: Was provided with " << password << ", read " << pass << ".\n";
+			return bad;
+		}
 		int curr;
 		size_t num;
 		database >> num; // Computer history load.
@@ -672,7 +691,7 @@ namespace backend
 			database >> curr;
 			lookup[make_pair(scissors, scissors)] = (choice)curr;
 			return success;
-		/*case 1: // Loader code for the first version revision: Add in initial header support. Note that there is no support for endianness checking et al.
+		case 1: // Loader code for the first version revision: Add in initial header support. Note that there is no support for endianness checking et al.
 			if (header != 0xBADC0DE)
 			{
 				debug_print("Failure on reading header number: Read ");
@@ -681,7 +700,7 @@ namespace backend
 				debug_print(0xBADC0DE);
 				if (failOnBadHeader(1))
 				{
-					debug << "Current document version, " << docvers << ", specifies for load() to not attempt to continue a document load after a bad header read.\n";
+					debug << "Current document version, 1, specifies for load() to not attempt to continue a document load after a bad header read.\n";
 					return failure;
 				}
 				else
@@ -732,6 +751,74 @@ namespace backend
 			lookup[make_pair (scissors, paper)]=(choice)curr;
 			database>>curr;
 			lookup[make_pair (scissors, scissors)]=(choice)curr;
+			return success;
+		/*case 2: // Loader code for the second document revision: Add in password support.
+			if (header != 0xBADC0DE)
+			{
+				debug_print("Failure on reading header number: Read ");
+				debug_print(header);
+				debug_print(", expected ");
+				debug_print(0xBADC0DE);
+				if (failOnBadHeader(2))
+				{
+					debug << "Current document version, 2, specifies for load() to not attempt to continue a document load after a bad header read.\n";
+					return failure;
+				}
+				else
+					debug << "Continuing as per document specifications.\n";
+			}
+			std::string pass;
+			std::getline(database, pass);
+			if (pass != password)
+			{
+				debug << "Invalid password: Was provided with " << pass << ", read " << password << ".\n";
+				return bad;
+			}
+			int curr;
+			size_t num;
+			database >> num; // Computer history load.
+			myhistory.clear();
+			debug << "Read myhistory size: " << num << '\n';
+			for (; num; --num)
+			{
+				database >> curr;
+				myhistory.push_back((choice)curr);
+			}
+			database >> num; // Player history load.
+			plhistory.clear();
+			debug << "Read plhistory size: " << num << '\n';
+			for (; num; --num)
+			{
+				database >> curr;
+				plhistory.push_back((choice)curr);
+			}
+			database >> num; // Win/loss history load.
+			cpuwonhist.clear();
+			debug << "Read cpuwonhist size: " << num << '\n';
+			for (; num; --num)
+			{
+				database >> curr;
+				cpuwonhist.push_back((result)curr);
+			}
+			// Lookup load.
+			database >> curr;
+			lookup[make_pair(rock, rock)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(rock, paper)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(rock, scissors)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(paper, rock)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(paper, paper)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(paper, scissors)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(scissors, rock)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(scissors, paper)] = (choice)curr;
+			database >> curr;
+			lookup[make_pair(scissors, scissors)] = (choice)curr;
 			return success;*/
 		case docvers:
 			return load();
@@ -754,7 +841,7 @@ namespace backend
 		debug_print("Saving document version number: ");
 		debug_print(docvers);
 		debug_print('\n');
-		database << MAGIC_NUMBER << '\n' << docvers << '\n' << (size_t)myhistory.size() << '\n';
+		database << MAGIC_NUMBER << '\n' << docvers << '\n' << password << '\n' << (size_t)myhistory.size() << '\n';
 		for (size_t i = 0; i<myhistory.size(); i++)
 			database << (int)myhistory[i] << '\n';
 		database << (size_t)plhistory.size() << '\n';

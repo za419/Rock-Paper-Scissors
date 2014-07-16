@@ -1,4 +1,4 @@
-// rock paper scissors.cpp : Defines the entry point for the console application.
+-// rock paper scissors.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -92,33 +92,39 @@ int _cdecl main(int argc, char* argv[])
 		{
 			backend::data::lkupmode=true;
 			backend::getchoice=backend::sessmem_getchoice;
-			if (argc>2)
+			if (argc==4)
 			{
 				backend::data::username=new char [strlen (argv[2])+1];
 				strcpy_s(backend::data::username, strlen(argv[2]) + 1, argv[2]);
+				backend::data::password = argv[3];
 			}
 			else
 			{
-				cout<<"Usage: "<<argv[0]<<" memorymode [username]\n";
+				cout<<"Usage: "<<argv[0]<<" memorymode [username password]\n";
 				cout<<"  memorymode can be any of:\n";
 				cout<<"    none (uses a one-move algorithm)\n";
 				cout<<"    session (uses session memory for the algorithm)\n";
 				cout<<"    database (uses and records user-specific data for the algorithm)\n";
 				cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n";
+				cout << "Password is also used only for database mode, and helps prevent others from opening your user data.\n";
 				cout<<"Please enter your username.\n";
 				std::string user;
 				std::getline (cin,user);
 				backend::data::username=new char [user.size()+1];
 				strcpy_s (backend::data::username, user.size()+1, user.c_str());
+				cout << "Please enter your password.\n";
+				std::getline(cin, backend::data::password);
 			}
 			const bool load ((bool)ifstream ((string(backend::data::username)+".db").c_str()));
 			backend::data::database.open ((string(backend::data::username)+".db").c_str(),ios::in|ios::out);
 			if (load)
 			{
-				if (backend::load ()==failure)
+				auto res(backend::load());
+				if (res==failure)
 				{
 					cout<<"The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...\n";
-					if (backend::compatload ()==failure)
+					res = backend::compatload();
+					if (res==failure)
 					{
 						cout<<"The compatibility mode loader was not able to open your database.\n";
 						char yn;
@@ -157,6 +163,7 @@ int _cdecl main(int argc, char* argv[])
 									{
 										cout<<"Ok...switching to session memory mode...\n";
 										delete[] backend::data::username;
+										backend::data::password.clear();
 										backend::data::username=nullptr;
 										backend::data::database.close();
 										break;
@@ -166,18 +173,36 @@ int _cdecl main(int argc, char* argv[])
 							}
 						}
 					}
+					else if (res == bad)
+					{
+						cout << "Invalid password. Switching to session memory...\n";
+						delete[] backend::data::username;
+						backend::data::password.clear();
+						backend::data::username = nullptr;
+						backend::data::database.close();
+						break;
+					}
+				}
+				else if (res==bad)
+				{
+					cout << "Invalid password. Switching to session memory...\n";
+					delete[] backend::data::username;
+					backend::data::password.clear();
+					backend::data::username = nullptr;
+					backend::data::database.close();
+					break;
 				}
 			}
 		}
 		else if (!stricmp (argv[1], "none")); // The program starts preconfigured for this mode. Take no action.	
 		else
 		{
-			cout<<"Usage: "<<argv[0]<<" memorymode [username]\n";
+			cout<<"Usage: "<<argv[0]<<" memorymode [username password]\n";
 			cout<<"  memorymode can be any of:\n";
 			cout<<"    none (uses a one-move algorithm)\n";
 			cout<<"    session (uses session memory for the algorithm)\n";
 			cout<<"    database (uses and records user-specific data for the algorithm)\n";
-			cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n\n";
+			cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n";
 			while (1)
 			{
 				cout<<"Please enter your memorymode.\n";
@@ -196,9 +221,11 @@ int _cdecl main(int argc, char* argv[])
 					backend::data::database.open (backend::data::username);
 					if (load)
 					{
-						if (backend::load ()==failure)
+						auto res(backend::load());
+						if (res==failure)
 						{
 							cout<<"The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...\n";
+							res = backend::compatload();
 							if (backend::compatload ()==failure)
 							{
 								cout<<"The compatibility mode loader was not able to open your database.\n";
@@ -247,6 +274,22 @@ int _cdecl main(int argc, char* argv[])
 									}
 								}
 							}
+							else if (res == bad)
+							{
+								cout << "Incorrect password. Switching to session memory mode...\n";
+								delete[] backend::data::username;
+								backend::data::username = nullptr;
+								backend::data::database.close();
+								break;
+							}
+						}
+						else if (res == bad)
+						{
+							cout << "Incorrect password. Switching to session memory mode...\n";
+							delete[] backend::data::username;
+							backend::data::username = nullptr;
+							backend::data::database.close();
+							break;
 						}
 					}
 					break;
@@ -271,7 +314,8 @@ int _cdecl main(int argc, char* argv[])
 		cout<<"    none (uses a one-move algorithm)\n";
 		cout<<"    session (uses session memory for the algorithm)\n";
 		cout<<"    database (uses and records user-specific data for the algorithm)\n";
-		cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n\n";
+		cout<<"Username is only used for database mode, and allows all prior data to be displayed.\n";
+		cout << "Password is also only used for database mode, and helps deny access to your data.\n\n";
 		while (1)
 		{
 			cout<<"Please enter your memorymode.\n";
@@ -288,12 +332,16 @@ int _cdecl main(int argc, char* argv[])
 				strcpy_s (backend::data::username, user.size()+1, user.c_str());
 				const bool load ((bool)ifstream ((string(backend::data::username)+".db").c_str()));
 				backend::data::database.open ((string(backend::data::username)+".db").c_str(), ios::in|ios::out);
+				cout << "Please enter your password.\n";
+				getline(cin, backend::data::password);
 				if (load)
 				{
-					if (backend::load ()==failure)
+					auto res(backend::load());
+					if (res==failure)
 					{
 						cout<<"The system shows that your database file exists, but is not in the current format.\nAttempting load of prior database formats...\n";
-						if (backend::compatload ()==failure)
+						res = backend::compatload();
+						if (res==failure)
 						{
 							cout<<"The compatibility mode loader was not able to open your database.\n";
 							char yn;
@@ -341,6 +389,22 @@ int _cdecl main(int argc, char* argv[])
 								}
 							}
 						}
+						else if (res == bad)
+						{
+							cout << "Incorrect password. Switching to session memory mode...\n";
+							delete[] backend::data::username;
+							backend::data::username = nullptr;
+							backend::data::database.close();
+							break;
+						}
+					}
+					else if (res == bad)
+					{
+						cout << "Incorrect password. Switching to session memory mode...\n";
+						delete[] backend::data::username;
+						backend::data::username = nullptr;
+						backend::data::database.close();
+						break;
 					}
 				}
 				break;

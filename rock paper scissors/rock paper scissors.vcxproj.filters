@@ -46,5 +46,8 @@
     <Text Include="Version 1.txt">
       <Filter>Resource Files\Document Format specs</Filter>
     </Text>
+    <Text Include="Version 2.txt">
+      <Filter>Resource Files\Document Format specs</Filter>
+    </Text>
   </ItemGroup>
 </Project>
