@@ -582,16 +582,12 @@ namespace backend
 		if (vers != docvers)
 			return failure;
 		std::string pass;
-		database.clear();
-		database.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		std::getline(database, pass);
 		if (pass != password)
 		{
 			debug << "Invalid password: Was provided with " << password << ", read " << pass << ".\n";
 			return bad;
 		}
-		database.clear();
-		database.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		int curr;
 		size_t num;
 		database >> num; // Computer history load.
